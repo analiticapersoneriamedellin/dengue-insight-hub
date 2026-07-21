@@ -254,12 +254,24 @@ function Index() {
       </nav>
 
       {/* HERO */}
-      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
-        <Particles />
-        <div className="relative max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 liquid-glass px-4 py-1.5 mb-8 animate-fade-up">
+      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-32 pb-20 overflow-hidden">
+        {/* Hero luminous backdrop */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/3 h-[720px] w-[1100px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(255,255,255,0.09), rgba(249,178,51,0.06) 40%, transparent 70%)" }} />
+          <div className="absolute inset-0 opacity-[0.05]"
+            style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "38px 38px" }} />
+        </div>
+
+        {/* Interactive mosquito swarm canvas */}
+        <div className="absolute inset-0 z-0">
+          <MosquitoSwarm />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 liquid-glass-hero px-4 py-1.5 mb-8 animate-fade-up">
             <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand-green)]" />
-            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/80">
+            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/90">
               Salud y Bienestar · Personería de Medellín
             </span>
           </div>
@@ -268,11 +280,11 @@ function Index() {
             style={{ animationDelay: "0.1s" }}>
             <span className="text-white">¿Mejora Epidemiológica</span>
             <br />
-            <span className="italic font-light text-white/60">o </span>
+            <span className="italic font-light text-white/70">o </span>
             <span className="text-gradient-red font-semibold">Subregistro Real?</span>
           </h1>
 
-          <p className="mt-8 max-w-2xl mx-auto text-base sm:text-lg text-white/60 leading-relaxed animate-fade-up"
+          <p className="mt-8 max-w-2xl mx-auto text-base sm:text-lg text-white/75 leading-relaxed animate-fade-up"
             style={{ animationDelay: "0.25s" }}>
             Análisis riguroso de la caída del <span className="text-[color:var(--brand-red)] font-semibold">90%</span> en
             la notificación de casos de Dengue en Medellín (2017–2021) frente a la disrupción del sistema de salud por la pandemia.
@@ -280,14 +292,14 @@ function Index() {
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "0.4s" }}>
             <a href="#presentacion"
-              className="liquid-glass-strong group inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:bg-[color:var(--brand-red)]/90 hover:border-[color:var(--brand-red)]">
+              className="liquid-glass-hero-strong group inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:bg-[color:var(--brand-red)]/90 hover:border-[color:var(--brand-red)]">
               Ver Presentación Ejecutiva
               <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </a>
             <a href="#contexto"
-              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white/70 hover:text-white transition">
+              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white/80 hover:text-white transition">
               Explorar hallazgos ↓
             </a>
           </div>
@@ -300,9 +312,9 @@ function Index() {
               { v: "16", l: "Comunas de Medellín" },
               { v: "CRISP-ML(Q)", l: "Marco metodológico" },
             ].map((s) => (
-              <div key={s.l} className="liquid-glass px-4 py-4 text-left">
+              <div key={s.l} className="liquid-glass-hero px-4 py-4 text-left">
                 <div className="text-xl md:text-2xl font-semibold tracking-tight text-white">{s.v}</div>
-                <div className="mt-1 text-[10px] uppercase tracking-wider text-white/50">{s.l}</div>
+                <div className="mt-1 text-[10px] uppercase tracking-wider text-white/60">{s.l}</div>
               </div>
             ))}
           </div>
