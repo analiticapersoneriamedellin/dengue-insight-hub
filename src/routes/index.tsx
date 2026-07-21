@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -20,40 +20,200 @@ const iceberg = [
   { year: "2021", cases: "240", hosp: "43.8%", accent: "text-[color:var(--brand-red)]" },
 ];
 
-function Particles() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 28 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        duration: 18 + Math.random() * 30,
-        delay: -Math.random() * 20,
-        size: 2 + Math.random() * 4,
-        hue: i % 3,
-      })),
-    []
-  );
-  const colors = ["rgba(249,178,51,0.55)", "rgba(227,6,19,0.5)", "rgba(255,255,255,0.35)"];
+function MosquitoSwarm() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pointerRef = useRef<{ x: number; y: number; active: boolean }>({ x: -9999, y: -9999, active: false });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const COUNT = reduce ? 22 : Math.min(70, Math.floor((width * height) / 22000));
+
+    type M = {
+      x: number; y: number; z: number;
+      vx: number; vy: number;
+      phase: number; wingSpeed: number;
+      hue: number;
+    };
+
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
+    const swarm: M[] = Array.from({ length: COUNT }, () => ({
+      x: rand(0, width),
+      y: rand(0, height),
+      z: rand(0.35, 1),
+      vx: rand(-0.4, 0.4),
+      vy: rand(-0.25, 0.25),
+      phase: rand(0, Math.PI * 2),
+      wingSpeed: rand(0.45, 0.85),
+      hue: Math.random(),
+    }));
+
+    const onMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      pointerRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, active: true };
+    };
+    const onLeave = () => { pointerRef.current.active = false; };
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerleave", onLeave);
+
+    let raf = 0;
+    let t = 0;
+
+    const drawMosquito = (m: M) => {
+      const size = 4 + m.z * 9;
+      const angle = Math.atan2(m.vy, m.vx);
+      const wing = Math.sin(t * m.wingSpeed + m.phase);
+      const alpha = 0.35 + m.z * 0.5;
+
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(angle);
+
+      // glow trail
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 3);
+      const col = m.hue < 0.5
+        ? `249,178,51`
+        : m.hue < 0.85 ? `227,6,19` : `255,255,255`;
+      glow.addColorStop(0, `rgba(${col},${0.18 * m.z})`);
+      glow.addColorStop(1, `rgba(${col},0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // wings (semi-transparent ellipses, flapping via scaleY)
+      ctx.fillStyle = `rgba(255,255,255,${0.18 * alpha})`;
+      const wingH = size * (0.45 + Math.abs(wing) * 0.9);
+      ctx.beginPath();
+      ctx.ellipse(-size * 0.05, -wingH * 0.5, size * 0.55, wingH, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-size * 0.05,  wingH * 0.5, size * 0.55, wingH, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // body
+      ctx.fillStyle = `rgba(${col},${alpha})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.9, size * 0.22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // head
+      ctx.beginPath();
+      ctx.arc(size * 0.85, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // proboscis
+      ctx.strokeStyle = `rgba(${col},${alpha * 0.9})`;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(size * 1.05, 0);
+      ctx.lineTo(size * 1.7, 0);
+      ctx.stroke();
+
+      // legs
+      ctx.strokeStyle = `rgba(255,255,255,${0.22 * alpha})`;
+      ctx.lineWidth = 0.6;
+      for (let i = -1; i <= 1; i++) {
+        const lx = i * size * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(lx, 0);
+        ctx.quadraticCurveTo(lx - size * 0.1, size * (0.55 + wing * 0.15), lx - size * 0.4, size * (1.0 + wing * 0.15));
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(lx, 0);
+        ctx.quadraticCurveTo(lx - size * 0.1, -size * (0.55 + wing * 0.15), lx - size * 0.4, -size * (1.0 + wing * 0.15));
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    const step = () => {
+      t += 1;
+      ctx.clearRect(0, 0, width, height);
+
+      const p = pointerRef.current;
+
+      for (const m of swarm) {
+        // organic wander
+        m.vx += (Math.random() - 0.5) * 0.08;
+        m.vy += (Math.random() - 0.5) * 0.08;
+
+        // pointer interaction (repel like a mosquito avoiding a hand)
+        if (p.active) {
+          const dx = m.x - p.x;
+          const dy = m.y - p.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 22000) {
+            const d = Math.sqrt(d2) || 1;
+            const f = (1 - d / 150) * 0.9;
+            m.vx += (dx / d) * f;
+            m.vy += (dy / d) * f;
+          }
+        }
+
+        // gentle depth-based drift
+        m.vx += Math.sin((m.y + t) * 0.003) * 0.015 * m.z;
+        m.vy += Math.cos((m.x + t) * 0.003) * 0.015 * m.z;
+
+        // clamp speed
+        const sp = Math.hypot(m.vx, m.vy);
+        const max = 0.6 + m.z * 1.4;
+        if (sp > max) { m.vx = (m.vx / sp) * max; m.vy = (m.vy / sp) * max; }
+        // friction
+        m.vx *= 0.985; m.vy *= 0.985;
+
+        m.x += m.vx; m.y += m.vy;
+
+        // wrap
+        if (m.x < -20) m.x = width + 20;
+        if (m.x > width + 20) m.x = -20;
+        if (m.y < -20) m.y = height + 20;
+        if (m.y > height + 20) m.y = -20;
+
+        drawMosquito(m);
+      }
+
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="particle"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            background: colors[p.hue],
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-            boxShadow: `0 0 ${p.size * 3}px ${colors[p.hue]}`,
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 h-full w-full"
+      style={{ touchAction: "none" }}
+      aria-hidden="true"
+    />
   );
 }
 
@@ -94,12 +254,24 @@ function Index() {
       </nav>
 
       {/* HERO */}
-      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
-        <Particles />
-        <div className="relative max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 liquid-glass px-4 py-1.5 mb-8 animate-fade-up">
+      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-32 pb-20 overflow-hidden">
+        {/* Hero luminous backdrop */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/3 h-[720px] w-[1100px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(255,255,255,0.09), rgba(249,178,51,0.06) 40%, transparent 70%)" }} />
+          <div className="absolute inset-0 opacity-[0.05]"
+            style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "38px 38px" }} />
+        </div>
+
+        {/* Interactive mosquito swarm canvas */}
+        <div className="absolute inset-0 z-0">
+          <MosquitoSwarm />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 liquid-glass-hero px-4 py-1.5 mb-8 animate-fade-up">
             <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand-green)]" />
-            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/80">
+            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/90">
               Salud y Bienestar · Personería de Medellín
             </span>
           </div>
@@ -108,11 +280,11 @@ function Index() {
             style={{ animationDelay: "0.1s" }}>
             <span className="text-white">¿Mejora Epidemiológica</span>
             <br />
-            <span className="italic font-light text-white/60">o </span>
+            <span className="italic font-light text-white/70">o </span>
             <span className="text-gradient-red font-semibold">Subregistro Real?</span>
           </h1>
 
-          <p className="mt-8 max-w-2xl mx-auto text-base sm:text-lg text-white/60 leading-relaxed animate-fade-up"
+          <p className="mt-8 max-w-2xl mx-auto text-base sm:text-lg text-white/75 leading-relaxed animate-fade-up"
             style={{ animationDelay: "0.25s" }}>
             Análisis riguroso de la caída del <span className="text-[color:var(--brand-red)] font-semibold">90%</span> en
             la notificación de casos de Dengue en Medellín (2017–2021) frente a la disrupción del sistema de salud por la pandemia.
@@ -120,14 +292,14 @@ function Index() {
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "0.4s" }}>
             <a href="#presentacion"
-              className="liquid-glass-strong group inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:bg-[color:var(--brand-red)]/90 hover:border-[color:var(--brand-red)]">
+              className="liquid-glass-hero-strong group inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:bg-[color:var(--brand-red)]/90 hover:border-[color:var(--brand-red)]">
               Ver Presentación Ejecutiva
               <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </a>
             <a href="#contexto"
-              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white/70 hover:text-white transition">
+              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-white/80 hover:text-white transition">
               Explorar hallazgos ↓
             </a>
           </div>
@@ -140,9 +312,9 @@ function Index() {
               { v: "16", l: "Comunas de Medellín" },
               { v: "CRISP-ML(Q)", l: "Marco metodológico" },
             ].map((s) => (
-              <div key={s.l} className="liquid-glass px-4 py-4 text-left">
+              <div key={s.l} className="liquid-glass-hero px-4 py-4 text-left">
                 <div className="text-xl md:text-2xl font-semibold tracking-tight text-white">{s.v}</div>
-                <div className="mt-1 text-[10px] uppercase tracking-wider text-white/50">{s.l}</div>
+                <div className="mt-1 text-[10px] uppercase tracking-wider text-white/60">{s.l}</div>
               </div>
             ))}
           </div>
