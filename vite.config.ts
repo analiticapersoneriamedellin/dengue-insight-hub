@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Añadimos la base para que GitHub Pages reconozca la ruta del repositorio público
+    base: '/dengue-insight-hub/',
+  },
 });
