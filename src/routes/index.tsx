@@ -20,40 +20,200 @@ const iceberg = [
   { year: "2021", cases: "240", hosp: "43.8%", accent: "text-[color:var(--brand-red)]" },
 ];
 
-function Particles() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 28 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        duration: 18 + Math.random() * 30,
-        delay: -Math.random() * 20,
-        size: 2 + Math.random() * 4,
-        hue: i % 3,
-      })),
-    []
-  );
-  const colors = ["rgba(249,178,51,0.55)", "rgba(227,6,19,0.5)", "rgba(255,255,255,0.35)"];
+function MosquitoSwarm() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pointerRef = useRef<{ x: number; y: number; active: boolean }>({ x: -9999, y: -9999, active: false });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const COUNT = reduce ? 22 : Math.min(70, Math.floor((width * height) / 22000));
+
+    type M = {
+      x: number; y: number; z: number;
+      vx: number; vy: number;
+      phase: number; wingSpeed: number;
+      hue: number;
+    };
+
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
+    const swarm: M[] = Array.from({ length: COUNT }, () => ({
+      x: rand(0, width),
+      y: rand(0, height),
+      z: rand(0.35, 1),
+      vx: rand(-0.4, 0.4),
+      vy: rand(-0.25, 0.25),
+      phase: rand(0, Math.PI * 2),
+      wingSpeed: rand(0.45, 0.85),
+      hue: Math.random(),
+    }));
+
+    const onMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      pointerRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, active: true };
+    };
+    const onLeave = () => { pointerRef.current.active = false; };
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerleave", onLeave);
+
+    let raf = 0;
+    let t = 0;
+
+    const drawMosquito = (m: M) => {
+      const size = 4 + m.z * 9;
+      const angle = Math.atan2(m.vy, m.vx);
+      const wing = Math.sin(t * m.wingSpeed + m.phase);
+      const alpha = 0.35 + m.z * 0.5;
+
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(angle);
+
+      // glow trail
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 3);
+      const col = m.hue < 0.5
+        ? `249,178,51`
+        : m.hue < 0.85 ? `227,6,19` : `255,255,255`;
+      glow.addColorStop(0, `rgba(${col},${0.18 * m.z})`);
+      glow.addColorStop(1, `rgba(${col},0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // wings (semi-transparent ellipses, flapping via scaleY)
+      ctx.fillStyle = `rgba(255,255,255,${0.18 * alpha})`;
+      const wingH = size * (0.45 + Math.abs(wing) * 0.9);
+      ctx.beginPath();
+      ctx.ellipse(-size * 0.05, -wingH * 0.5, size * 0.55, wingH, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-size * 0.05,  wingH * 0.5, size * 0.55, wingH, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // body
+      ctx.fillStyle = `rgba(${col},${alpha})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.9, size * 0.22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // head
+      ctx.beginPath();
+      ctx.arc(size * 0.85, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // proboscis
+      ctx.strokeStyle = `rgba(${col},${alpha * 0.9})`;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(size * 1.05, 0);
+      ctx.lineTo(size * 1.7, 0);
+      ctx.stroke();
+
+      // legs
+      ctx.strokeStyle = `rgba(255,255,255,${0.22 * alpha})`;
+      ctx.lineWidth = 0.6;
+      for (let i = -1; i <= 1; i++) {
+        const lx = i * size * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(lx, 0);
+        ctx.quadraticCurveTo(lx - size * 0.1, size * (0.55 + wing * 0.15), lx - size * 0.4, size * (1.0 + wing * 0.15));
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(lx, 0);
+        ctx.quadraticCurveTo(lx - size * 0.1, -size * (0.55 + wing * 0.15), lx - size * 0.4, -size * (1.0 + wing * 0.15));
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    const step = () => {
+      t += 1;
+      ctx.clearRect(0, 0, width, height);
+
+      const p = pointerRef.current;
+
+      for (const m of swarm) {
+        // organic wander
+        m.vx += (Math.random() - 0.5) * 0.08;
+        m.vy += (Math.random() - 0.5) * 0.08;
+
+        // pointer interaction (repel like a mosquito avoiding a hand)
+        if (p.active) {
+          const dx = m.x - p.x;
+          const dy = m.y - p.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 22000) {
+            const d = Math.sqrt(d2) || 1;
+            const f = (1 - d / 150) * 0.9;
+            m.vx += (dx / d) * f;
+            m.vy += (dy / d) * f;
+          }
+        }
+
+        // gentle depth-based drift
+        m.vx += Math.sin((m.y + t) * 0.003) * 0.015 * m.z;
+        m.vy += Math.cos((m.x + t) * 0.003) * 0.015 * m.z;
+
+        // clamp speed
+        const sp = Math.hypot(m.vx, m.vy);
+        const max = 0.6 + m.z * 1.4;
+        if (sp > max) { m.vx = (m.vx / sp) * max; m.vy = (m.vy / sp) * max; }
+        // friction
+        m.vx *= 0.985; m.vy *= 0.985;
+
+        m.x += m.vx; m.y += m.vy;
+
+        // wrap
+        if (m.x < -20) m.x = width + 20;
+        if (m.x > width + 20) m.x = -20;
+        if (m.y < -20) m.y = height + 20;
+        if (m.y > height + 20) m.y = -20;
+
+        drawMosquito(m);
+      }
+
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="particle"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            background: colors[p.hue],
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-            boxShadow: `0 0 ${p.size * 3}px ${colors[p.hue]}`,
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 h-full w-full"
+      style={{ touchAction: "none" }}
+      aria-hidden="true"
+    />
   );
 }
 
