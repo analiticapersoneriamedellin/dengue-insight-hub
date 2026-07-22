@@ -567,7 +567,7 @@ function Index() {
             <div className="aspect-video w-full rounded-xl shadow-2xl overflow-hidden bg-black border border-white/10 relative"
               style={{ borderTop: "1px solid rgba(249,178,51,0.3)", borderBottom: "1px solid rgba(227,6,19,0.3)" }}>
               <iframe
-                src="https://app.slidesai.io/p/0c872193-8143-4f4f-a8aa-156f8eaef7de/embed"
+                src="https://app.slidesai.io/p/0c872193-8143-4f4f-a8aa-156f8eaef7de"
                 title="Presentación Reto 117 - Vigilancia del Dengue"
                 className="absolute inset-0 h-full w-full border-0"
                 allowFullScreen
