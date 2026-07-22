@@ -562,10 +562,8 @@ function Index() {
             Presentación completa del equipo 330 para el Reto 117 · Personería Distrital de Medellín.
           </p>
 
-          <div className="mt-12 liquid-glass-strong p-2 md:p-3"
-            style={{ boxShadow: "0 24px 80px rgba(227,6,19,0.08), inset 0 1px 0 rgba(255,255,255,0.1)" }}>
-            <div className="aspect-video w-full rounded-xl shadow-2xl overflow-hidden bg-black border border-white/10 relative"
-              style={{ borderTop: "1px solid rgba(249,178,51,0.3)", borderBottom: "1px solid rgba(227,6,19,0.3)" }}>
+          <div className="mt-12 liquid-glass-strong p-2 md:p-3" style={{ boxShadow: "0 24px 80px rgba(227,6,19,0.08), inset 0 1px 0 rgba(255,255,255,0.1)" }}>
+            <div className="aspect-video w-full rounded-xl shadow-2xl overflow-hidden bg-black border border-white/10 relative" style={{ borderTop: "1px solid rgba(249,178,51,0.3)", borderBottom: "1px solid rgba(227,6,19,0.3)" }}>
               <iframe
                 src="about:blank"
                 title="Presentación Reto - Vigilancia del Dengue"
