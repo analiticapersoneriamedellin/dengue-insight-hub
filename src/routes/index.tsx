@@ -551,7 +551,7 @@ function Index() {
         </div>
       </section>
 
-     {/* SLIDES EMBED */}
+{/* SLIDES EMBED */}
       <section id="presentacion" className="relative z-10 py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionKicker n="05" label="Sustentación Ejecutiva" />
@@ -567,11 +567,17 @@ function Index() {
             <div className="aspect-video w-full rounded-xl shadow-2xl overflow-hidden bg-black border border-white/10 relative"
               style={{ borderTop: "1px solid rgba(249,178,51,0.3)", borderBottom: "1px solid rgba(227,6,19,0.3)" }}>
               <iframe
-                src="https://app.slidesai.io/p/0c872193-8143-4f4f-a8aa-156f8eaef7de"
-                title="Presentación Reto 117 - Vigilancia del Dengue"
-                className="absolute inset-0 h-full w-full border-0"
+                src="about:blank"
+                title="Presentación Reto - Vigilancia del Dengue"
+                className="absolute inset-0 h-full w-full"
                 allowFullScreen
               />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <div className="text-[10px] uppercase tracking-widest text-white/30">Slides embed placeholder</div>
+                  <div className="mt-2 text-white/50 text-sm">Insertar aquí URL del deck (Google Slides / Canva)</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
