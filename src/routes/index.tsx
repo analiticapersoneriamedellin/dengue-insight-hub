@@ -238,7 +238,7 @@ function Index() {
           <div className="flex items-center gap-3">
             <div className="h-2.5 w-2.5 rounded-full bg-[color:var(--brand-red)] animate-pulse-glow" />
             <span className="text-xs sm:text-sm font-medium tracking-tight text-white/90">
-              Reto 117 · Vigilancia del Dengue
+              Reto 330 · Vigilancia del Dengue
               <span className="hidden sm:inline text-white/40"> · Equipo 330</span>
             </span>
           </div>
@@ -551,7 +551,7 @@ function Index() {
         </div>
       </section>
 
-      {/* SLIDES EMBED */}
+     {/* SLIDES EMBED */}
       <section id="presentacion" className="relative z-10 py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionKicker n="05" label="Sustentación Ejecutiva" />
@@ -567,17 +567,11 @@ function Index() {
             <div className="aspect-video w-full rounded-xl shadow-2xl overflow-hidden bg-black border border-white/10 relative"
               style={{ borderTop: "1px solid rgba(249,178,51,0.3)", borderBottom: "1px solid rgba(227,6,19,0.3)" }}>
               <iframe
-                src="about:blank"
+                src="https://personeriamedellingovco-my.sharepoint.com/:p:/g/personal/analitica_personeriamedellin_gov_co/IQBVGGmr1r8HQJuRljhX17fmAVkoJMCDLGueUcK-_bvmopM?e=hnrNu4"
                 title="Presentación Reto 117 - Vigilancia del Dengue"
-                className="absolute inset-0 h-full w-full"
+                className="absolute inset-0 h-full w-full border-0"
                 allowFullScreen
               />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center">
-                  <div className="text-[10px] uppercase tracking-widest text-white/30">Slides embed placeholder</div>
-                  <div className="mt-2 text-white/50 text-sm">Insertar aquí URL del deck (Google Slides / Canva)</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
